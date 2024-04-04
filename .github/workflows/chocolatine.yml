@@ -18,7 +18,7 @@ jobs:
       - name: extraction
         uses: actions/checkout@v4
 
-  job2:
+job2:
     runs-on: ubuntu-latest
     needs: job1
     steps:
