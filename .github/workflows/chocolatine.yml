@@ -24,7 +24,7 @@ jobs:
     needs: job1
     steps:
       - name: coding style checker
-        run:|
+        run: |
           if [[ "${{ github.repository }}" == "EpitechPromo2028/B-DOP-200-BDX-2-1-chocolatine-jimmy.ramsamynaick" ]]; then
             echo "No test are run in this job. It stops immediately"
             exit 1
