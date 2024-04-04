@@ -1,5 +1,4 @@
 name: Workflow
-//run-name: ${{github.actor}} choco's check
 on:
   push:
     branches-ignore:
