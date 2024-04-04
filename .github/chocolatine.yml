@@ -1,0 +1,109 @@
+name: Workflow
+//run-name: ${{github.actor}} choco's check
+on:
+  push:
+    branches-ignore:
+      - "ga-ignore-"
+  pull_request:
+    branches-ignore:
+      - "ga-ignore-"
+
+env:
+  MIRROR_URL: github.com/EpitechPromo2028/B-DOP-200-COT-2-1-chocolatine-nisrine.zato
+  EXECUTABLES: "lib/my/libmy.a"
+
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: extraction
+        uses: actions/checkout@v4
+
+  job2:
+    runs-on: ubuntu-latest
+    needs: job1
+    steps:
+      - name: coding style checker
+        run: |
+        check.sh $(pwd) $(pwd) > coding_style_reports.log 2>&1
+        echo "::set-output name=number_of_errors::$(grep -c 'Error' coding_style_reports.log)"
+        cat coding_style_reports.log
+
+check_coding_style:
+  runs-on: ubuntu-latest
+  needs: job1
+  container: ghcr.io/epitech/coding-style-checker:latest
+  steps:
+    - name: extraction
+      uses: actions/checkout@v4
+      with:
+        repository: ' '
+
+    - name: Exécution du script de vérification du style de codage
+      run: check.sh $(pwd) $(pwd) > coding-style-reports.log
+
+    - name: Affichage des erreurs de style de codage
+      id: annotation
+      run: |
+        NB_ERRORS=$(cat coding-style-reports.log | wc -l)
+        if [ $NB_ERRORS -ge 1 ]; then
+          while IFS= read -r line
+          do
+            FILE=$(echo $line | cut -d ':' -f1)
+            LINE=$(echo $line | cut -d ':' -f2)
+            ERROR=$(echo $line | cut -d ':' -f3-)
+            echo "::error file=$FILE,line=$LINE::Erreur de style de codage: $ERROR"
+          done < coding-style-reports.log
+          exit 1
+        fi
+        exit 0
+
+check_program_compilation:
+  runs-on: ubuntu-latest
+  needs: check_coding_style
+  container: epitechcontent/epitest-docker
+  timeout-minutes: 2
+  steps:
+    - name: Exécution du make
+      run: make
+
+    - name: execution du make clean
+      run: make clean
+
+    - name: Vérification des exécutables
+      run: |
+        for executable in $EXECUTABLES; do
+          if [ ! -x "$executable" ]; then
+            echo "Erreur: $executable n'est pas présent ou n'est pas exécutable."
+            exit 1
+          fi
+        done
+
+run_tests:
+  runs-on: ubuntu-latest
+  needs: check_program_compilation
+  container: epitechcontent/epitest-docker
+  timeout-minutes: 2
+  steps:
+    - name: Exécution de make tests_run à la racine du référentiel
+      run: make tests_run
+
+push_to_mirror:
+  runs-on: ubuntu-latest
+  needs:  run_tests
+  if: github.event_name == 'push'
+  env:
+    MIRROR_URL: ${{ secrets.MIRROR_URL }}
+  steps:
+    - name: Mise en miroir vers le référentiel spécifié
+      uses: actions/checkout@v2
+
+    - name: Configuration de la clé privée SSH
+      run: echo "${{ secrets.GIT_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+      shell: bash
+      
+    - name: Mise en miroir du référentiel
+      run: git push $MIRROR_URL
+      env:
+        MIRROR_URL: ${{ secrets.MIRROR_URL }}
+
