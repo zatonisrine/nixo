@@ -2,44 +2,22 @@ name: Workflow
 on:
   push:
     branches-ignore:
-      - "ga-ignore-"
+      - "ga-ignore-*"
   pull_request:
     branches-ignore:
-      - "ga-ignore-"
+      - "ga-ignore-*"
 
 env:
   MIRROR_URL: github.com/EpitechPromo2028/B-DOP-200-COT-2-1-chocolatine-nisrine.zato
   EXECUTABLES: "lib/my/libmy.a"
 
 jobs:
-  job1:
-    runs-on: ubuntu-latest
-    steps:
-      - name: extraction
-        uses: actions/checkout@v4
-
-  job2:
-    runs-on: ubuntu-latest
-    needs: job1
-    steps:
-      - name: coding style checker
-        run: |
-          if [[ "${{ github.repository }}" == "EpitechPromo2028/B-DOP-200-BDX-2-1-chocolatine-jimmy.ramsamynaick" ]]; then
-            echo "No test are run in this job. It stops immediately"
-            exit 1
-          else
-            exit 0
-          fi
-
   check_coding_style:
     runs-on: ubuntu-latest
-    needs: job1
     container: ghcr.io/epitech/coding-style-checker:latest
     steps:
       - name: extraction
         uses: actions/checkout@v4
-      with:
-        repository: ' '
 
       - name: Exécution du script de vérification du style de codage
         run: check.sh $(pwd) $(pwd) > coding-style-reports.log
