@@ -25,18 +25,18 @@ jobs:
       - name: Affichage des erreurs de style de codage
         id: annotation
         run: |
-        NB_ERRORS=$(cat coding-style-reports.log | wc -l)
-        if [ $NB_ERRORS -ge 1 ]; then
-          while IFS= read -r line
-          do
-            FILE=$(echo $line | cut -d ':' -f1)
-            LINE=$(echo $line | cut -d ':' -f2)
-            ERROR=$(echo $line | cut -d ':' -f3-)
-            echo "::error file=$FILE,line=$LINE::Erreur de style de codage: $ERROR"
-          done < coding-style-reports.log
-          exit 1
-        fi
-        exit 0
+          NB_ERRORS=$(cat coding-style-reports.log | wc -l)
+          if [ $NB_ERRORS -ge 1 ]; then
+            while IFS= read -r line
+            do
+              FILE=$(echo $line | cut -d ':' -f1)
+              LINE=$(echo $line | cut -d ':' -f2)
+              ERROR=$(echo $line | cut -d ':' -f3-)
+              echo "::error file=$FILE,line=$LINE::Erreur de style de codage: $ERROR"
+            done < coding-style-reports.log
+            exit 1
+          fi
+          exit 0
 
   check_program_compilation:
     runs-on: ubuntu-latest
@@ -52,12 +52,12 @@ jobs:
 
       - name: Vérification des exécutables
         run: |
-        for executable in $EXECUTABLES; do
-          if [ ! -x "$executable" ]; then
-            echo "Erreur: $executable n'est pas présent ou n'est pas exécutable."
-            exit 1
-          fi
-        done
+          for executable in $EXECUTABLES; do
+            if [ ! -x "$executable" ]; then
+              echo "Erreur: $executable n'est pas présent ou n'est pas exécutable."
+              exit 1
+            fi
+          done
 
   run_tests:
     runs-on: ubuntu-latest
